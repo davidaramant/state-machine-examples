@@ -1,0 +1,50 @@
+@startuml "Overlays"
+
+' WorkStarted
+' WorkEnded
+' Backgrounded
+' Foregrounded
+
+state ShowingNothing
+
+state ShowingBusy {
+    ShowingBusy : entry / ShowBusyOverlay
+    ShowingBusy : exit / PopBusyOverlay
+    ShowingBusy : WorkStarted / IncrementWorkCount
+    ShowingBusy : WorkEnded [WorkRemaining] / DecrementWorkCount
+    state NoPrivacy
+    state PrivacyOverBusy {
+        PrivacyOverBusy : entry / ShowPrivacyOverlay
+        PrivacyOverBusy : exit / PopPrivacyOverlay
+    }
+
+    [*] --> NoPrivacy
+    NoPrivacy --> PrivacyOverBusy : Backgrounded
+    PrivacyOverBusy --> NoPrivacy : Foregrounded [WorkRemaining]
+    PrivacyOverBusy --> ShowingNothing : Foregrounded
+}
+
+state ShowingPrivacy {
+    ShowingPrivacy : entry / ShowPrivacyOverlay
+    ShowingPrivacy : exit / PopPrivacyOverlay
+    state NotBusy
+    state DeferredBusy
+
+    [*] --> NotBusy
+    NotBusy --> DeferredBusy : WorkStarted / IncementWorkCount
+    DeferredBusy --> NotBusy : WorkEnded
+    DeferredBusy : WorkStarted / IncrementWorkCount
+    DeferredBusy : WorkEnded [WorkRemaining] / DecrementWorkCount
+
+    DeferredBusy -> ShowingBusy : Foregrounded
+}
+
+[*] --> ShowingNothing
+
+ShowingNothing --> ShowingBusy : WorkStarted / IncrementWorkCount
+ShowingBusy --> ShowingNothing : WorkEnded
+
+ShowingNothing --> ShowingPrivacy : Backgrounded
+ShowingPrivacy --> ShowingNothing : Foregrounded
+
+@enduml
