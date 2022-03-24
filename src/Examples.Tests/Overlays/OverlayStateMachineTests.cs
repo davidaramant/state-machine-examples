@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Examples.Overlays;
+using FluentAssertions;
 using Xunit;
 
 namespace Examples.Tests.Overlays
@@ -41,10 +42,103 @@ namespace Examples.Tests.Overlays
             var maxEventNum = Enum.GetValues(typeof(OverlayEvent)).Cast<int>().Max();
 
             var eventStream = Enumerable.Range(0, NumEvents).Select(_ => (OverlayEvent)random.Next(maxEventNum));
+            int workCount = 0;
             foreach (var overlayEvent in eventStream)
             {
                 machine.HandleEvent(overlayEvent);
             }
+        }
+
+        [Theory]
+        [MemberData(nameof(AllMachines))]
+        public void ShouldDisplayBusyOverlayWhileWorkIsOngoing(Scenario scenario)
+        {
+            var stack = new ValidatingOverlayStack();
+            var machine = scenario.Build(stack);
+
+            machine.HandleEvent(OverlayEvent.WorkStarted);
+            stack.IsBusyInStack.Should().BeTrue();
+
+            machine.HandleEvent(OverlayEvent.WorkStarted);
+            stack.IsBusyInStack.Should().BeTrue();
+
+            machine.HandleEvent(OverlayEvent.WorkEnded);
+            stack.IsBusyInStack.Should().BeTrue();
+
+            machine.HandleEvent(OverlayEvent.WorkEnded);
+            stack.IsBusyInStack.Should().BeFalse();
+        }
+
+        [Theory]
+        [MemberData(nameof(AllMachines))]
+        public void ShouldHandlePrivacyOverlayOnTopOfOngoingWork(Scenario scenario)
+        {
+            var stack = new ValidatingOverlayStack();
+            var machine = scenario.Build(stack);
+
+            machine.HandleEvent(OverlayEvent.WorkStarted);
+            stack.IsBusyInStack.Should().BeTrue();
+            stack.IsPrivacyInStack.Should().BeFalse();
+
+            machine.HandleEvent(OverlayEvent.Backgrounded);
+            stack.IsBusyInStack.Should().BeTrue();
+            stack.IsPrivacyInStack.Should().BeTrue();
+
+            machine.HandleEvent(OverlayEvent.Foregrounded);
+            stack.IsBusyInStack.Should().BeTrue();
+            stack.IsPrivacyInStack.Should().BeFalse();
+
+            machine.HandleEvent(OverlayEvent.WorkEnded);
+            stack.IsBusyInStack.Should().BeFalse();
+            stack.IsPrivacyInStack.Should().BeFalse();
+        }
+
+        [Theory]
+        [MemberData(nameof(AllMachines))]
+        public void ShouldHandlePrivacyOverlayOnTopOfWorkThatEnds(Scenario scenario)
+        {
+            var stack = new ValidatingOverlayStack();
+            var machine = scenario.Build(stack);
+
+            machine.HandleEvent(OverlayEvent.WorkStarted);
+            stack.IsBusyInStack.Should().BeTrue();
+            stack.IsPrivacyInStack.Should().BeFalse();
+
+            machine.HandleEvent(OverlayEvent.Backgrounded);
+            stack.IsBusyInStack.Should().BeTrue();
+            stack.IsPrivacyInStack.Should().BeTrue();
+
+            machine.HandleEvent(OverlayEvent.WorkEnded);
+            stack.IsBusyInStack.Should().BeTrue();
+            stack.IsPrivacyInStack.Should().BeTrue();
+
+            machine.HandleEvent(OverlayEvent.Foregrounded);
+            stack.IsBusyInStack.Should().BeFalse();
+            stack.IsPrivacyInStack.Should().BeFalse();
+        }
+
+        [Theory]
+        [MemberData(nameof(AllMachines))]
+        public void ShouldHandleWorkThatStartsWhileShowingPrivacyOverlay(Scenario scenario)
+        {
+            var stack = new ValidatingOverlayStack();
+            var machine = scenario.Build(stack);
+
+            machine.HandleEvent(OverlayEvent.Backgrounded);
+            stack.IsBusyInStack.Should().BeFalse();
+            stack.IsPrivacyInStack.Should().BeTrue();
+
+            machine.HandleEvent(OverlayEvent.WorkStarted);
+            stack.IsBusyInStack.Should().BeFalse();
+            stack.IsPrivacyInStack.Should().BeTrue();
+
+            machine.HandleEvent(OverlayEvent.Foregrounded);
+            stack.IsBusyInStack.Should().BeTrue();
+            stack.IsPrivacyInStack.Should().BeFalse();
+
+            machine.HandleEvent(OverlayEvent.WorkEnded);
+            stack.IsBusyInStack.Should().BeFalse();
+            stack.IsPrivacyInStack.Should().BeFalse();
         }
     }
 }

@@ -59,9 +59,9 @@
                     return _currentState;
 
                 case OverlayEvent.WorkEnded:
-                    if (StackedWorkRemaining())
+                    DecrementWorkCount();
+                    if (_workCount > 0)
                     {
-                        DecrementWorkCount();
                         return _currentState;
                     }
                     else
@@ -71,6 +71,9 @@
                     }
                     
                 case OverlayEvent.Backgrounded:
+                    _overlayStack.AddPrivacyOverlay();
+                    return State.ShowingPrivacyOverBusyWorkUnderneath;
+
                 case OverlayEvent.Foregrounded:
                 default:
                     return _currentState;
@@ -86,15 +89,8 @@
                     return _currentState;
 
                 case OverlayEvent.WorkEnded:
-                    if (StackedWorkRemaining())
-                    {
-                        DecrementWorkCount();
-                        return _currentState;
-                    }
-                    else
-                    {
-                        return State.ShowingPrivacyOverBusyNoLongerBusy;
-                    }
+                    DecrementWorkCount();
+                    return _workCount > 0 ? _currentState : State.ShowingPrivacyOverBusyNoLongerBusy;
 
                 case OverlayEvent.Foregrounded:
                     _overlayStack.PopOverlay();
@@ -154,15 +150,8 @@
                     return _currentState;
 
                 case OverlayEvent.WorkEnded:
-                    if (StackedWorkRemaining())
-                    {
-                        DecrementWorkCount();
-                        return _currentState;
-                    }
-                    else
-                    {
-                        return State.ShowingPrivacyNoWork;
-                    }
+                    DecrementWorkCount();
+                    return _workCount > 0 ? _currentState : State.ShowingPrivacyNoWork;
 
                 case OverlayEvent.Foregrounded:
                     _overlayStack.PopOverlay();
@@ -178,6 +167,5 @@
 
         private void IncrementWorkCount() => _workCount++;
         private void DecrementWorkCount() => _workCount--;
-        private bool StackedWorkRemaining() => _workCount > 0;
     }
 }

@@ -8,33 +8,33 @@
 state ShowingNothing
 state ShowingBusy
 ShowingBusy : WorkStarted / IncrementWorkCount
-ShowingBusy : WorkEnded [StackedWorkRemaining] / DecrementWorkCount
+ShowingBusy : WorkEnded [WorkCount > 1] / DecrementWorkCount
 
 state ShowingPrivacy {
     state NoWork
     state DeferredWork
     DeferredWork : WorkStarted / IncrementWorkCount
-    DeferredWork : WorkEnded [StackedWorkRemaining] / DecrementWorkCount
+    DeferredWork : WorkEnded [WorkCount > 1] / DecrementWorkCount
 
     [*] --> NoWork
     NoWork --> DeferredWork : WorkStarted /\nIncrementWorkCount
-    DeferredWork --> NoWork : WorkEnded
+    DeferredWork --> NoWork : WorkEnded /\nDecrementWorkCount
 }
 state ShowingPrivacyOverBusy {
     state WorkUnderneath
     WorkUnderneath : WorkStarted / IncrementWorkCount
-    WorkUnderneath : WorkEnded [StackedWorkRemaining] / DecrementWorkCount
+    WorkUnderneath : WorkEnded [WorkCount > 1] / DecrementWorkCount
     state NoLongerBusy
 
     [*] --> WorkUnderneath
-    WorkUnderneath --> NoLongerBusy : WorkEnded
+    WorkUnderneath --> NoLongerBusy : WorkEnded /\nDecrementWorkCount
     NoLongerBusy --> WorkUnderneath : WorkStarted /\nIncrementWorkCount
 }
 
 [*] --> ShowingNothing
 
 ShowingNothing --> ShowingBusy : WorkStarted /\nIncrementWorkCount\nShowBusyOverlay
-ShowingBusy --> ShowingNothing : WorkEnded /\nPopOverlay
+ShowingBusy --> ShowingNothing : WorkEnded /\nDecrementWorkCount\nPopOverlay
 
 ShowingNothing --> ShowingPrivacy : Backgrounded /\nAddPrivacyOverlay
 ShowingPrivacy --> ShowingNothing : Foregrounded /\nPopOverlay

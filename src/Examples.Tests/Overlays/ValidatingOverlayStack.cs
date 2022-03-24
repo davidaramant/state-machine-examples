@@ -6,33 +6,33 @@ namespace Examples.Tests.Overlays
 {
     public sealed class ValidatingOverlayStack : IOverlayStack
     {
-        private bool _busyInStack = false;
-        private bool _privacyInStack = false;
+        public bool IsBusyInStack { get; private set; }
+        public bool IsPrivacyInStack { get; private set; }
 
         public void AddBusyOverlay()
         {
-            _privacyInStack.Should().BeFalse("cannot add busy overlay over privacy overlay.");
-            _busyInStack.Should().BeFalse("cannot add busy overlay twice.");
-            _busyInStack = true;
+            IsPrivacyInStack.Should().BeFalse("cannot add busy overlay over privacy overlay.");
+            IsBusyInStack.Should().BeFalse("cannot add busy overlay twice.");
+            IsBusyInStack = true;
         }
 
         public void AddPrivacyOverlay()
         {
-            _privacyInStack.Should().BeFalse("cannot add privacy overlay over privacy overlay.");
-            _privacyInStack = true;
+            IsPrivacyInStack.Should().BeFalse("cannot add privacy overlay over privacy overlay.");
+            IsPrivacyInStack = true;
         }
 
         public void PopOverlay()
         {
-            Assert.True(_privacyInStack || _busyInStack, "Attempted to pop empty stack");
+            Assert.True(IsPrivacyInStack || IsBusyInStack, "Attempted to pop empty stack");
 
-            if (_privacyInStack)
+            if (IsPrivacyInStack)
             {
-                _privacyInStack = false;
+                IsPrivacyInStack = false;
             }
             else
             {
-                _busyInStack = false;
+                IsBusyInStack = false;
             }
         }
     }
