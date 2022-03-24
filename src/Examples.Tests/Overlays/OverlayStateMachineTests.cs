@@ -42,7 +42,6 @@ namespace Examples.Tests.Overlays
             var maxEventNum = Enum.GetValues(typeof(OverlayEvent)).Cast<int>().Max();
 
             var eventStream = Enumerable.Range(0, NumEvents).Select(_ => (OverlayEvent)random.Next(maxEventNum));
-            int workCount = 0;
             foreach (var overlayEvent in eventStream)
             {
                 machine.HandleEvent(overlayEvent);
