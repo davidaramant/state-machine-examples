@@ -1,6 +1,6 @@
 ﻿namespace Examples.Overlays
 {
-    public sealed class NestedSwitchOverlayStateMachine : IOverlayStateMachine
+    public sealed class NestedSwitchOverlayController : IOverlayController
     {
         enum State
         {
@@ -16,7 +16,7 @@
         private State _currentState = State.ShowingNothing;
         private int _workCount = 0;
 
-        public NestedSwitchOverlayStateMachine(IOverlayStack overlayStack) => _overlayStack = overlayStack;
+        public NestedSwitchOverlayController(IOverlayStack overlayStack) => _overlayStack = overlayStack;
         
         public void HandleEvent(OverlayEvent trigger) =>
             _currentState = _currentState switch

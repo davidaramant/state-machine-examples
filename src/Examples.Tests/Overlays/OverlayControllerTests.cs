@@ -7,15 +7,15 @@ using Xunit;
 
 namespace Examples.Tests.Overlays
 {
-    public class OverlayStateMachineTests
+    public class OverlayControllerTests
     {
         public sealed class Scenario
         {
-            private readonly Func<IOverlayStack, IOverlayStateMachine> _buildMachine;
+            private readonly Func<IOverlayStack, IOverlayController> _buildMachine;
             private readonly string _description;
 
 
-            public Scenario(Func<IOverlayStack, IOverlayStateMachine> buildMachine, string description)
+            public Scenario(Func<IOverlayStack, IOverlayController> buildMachine, string description)
             {
                 _buildMachine = buildMachine;
                 _description = description;
@@ -23,13 +23,13 @@ namespace Examples.Tests.Overlays
 
             public override string ToString() => _description;
 
-            public IOverlayStateMachine Build(IOverlayStack stack) => _buildMachine(stack);
+            public IOverlayController Build(IOverlayStack stack) => _buildMachine(stack);
         }
 
         public static IEnumerable<object[]> AllMachines =
             new[]
             {
-                new object[]{ new Scenario(stack => new NestedSwitchOverlayStateMachine(stack),"Nested Switch")},
+                new object[]{ new Scenario(stack => new NestedSwitchOverlayController(stack),"Nested Switch")},
             };
 
         [Theory]

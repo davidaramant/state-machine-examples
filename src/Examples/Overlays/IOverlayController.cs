@@ -1,6 +1,6 @@
 ﻿namespace Examples.Overlays
 {
-    public interface IOverlayStateMachine
+    public interface IOverlayController
     {
         void HandleEvent(OverlayEvent trigger);
     }
